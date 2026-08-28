@@ -2,6 +2,8 @@
 
 [CN] ets_assistant 一个关于 e听说的辅助工具，详见 `ets_assistant/README.md`。
 
+ets_assistant网站[网站](https://zhanjhn.github.io/etsassistant/guide.html)
+
 > [!WARNING]
 > 1. 英语听说非常重要，请在使用本软件时保持应有的练习！！！
 > 2. 此软件仅限个人探索使用，禁止用于考试等场景！
