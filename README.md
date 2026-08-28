@@ -7,9 +7,9 @@
 > 2. 此软件仅限个人探索使用，禁止用于考试等场景！
 > 3. 关于 ets_assistant 项目的所有反馈请提交至[仓库](https://github.com/zhanjhn-studio/ets_assistant/)的 issue（提交 issue 等将截图上传时请注意保护您的个人隐私）进行反馈。
 > 4. 此软件完全开源，下载软件请前往[此处](https://github.com/zhanjhn-studio/ets_assistant/release)下载。
-> 5. 使用本软件默认已知晓其[隐私协议](https://zhanjhn.github.io/etsassistant/pravaYS.html)与其[使用须知](https://zhanjhn.github.io/etsassistant/pravaXZ.html)。
-> 6. 我们的[免责条款](https://zhanjhn.github.io/etsassistant/MZTK.html)。
-> 7. 附使用说明，请点击[这里](https://zhanjhn.github.io/etsassistant/index.html)，此仓库可 git 到本地进行其他探究，但必须遵循其许可证。
+> 5. 使用本软件默认已知晓其[隐私协议](https://zhanjhn.github.io/etsassistant/pravacy.html)与其[使用须知](https://zhanjhn.github.io/etsassistant/terms.html)。
+> 6. 我们的[免责条款](https://zhanjhn.github.io/etsassistant/disclaimer.html)。
+> 7. 附使用说明，请点击[这里](https://zhanjhn.github.io/etsassistant/guide.html)，此仓库可 git 到本地进行其他探究，但必须遵循其许可证。
 
 **什么是 ets_assistant?**
 
@@ -52,3 +52,4 @@ pip install -r ets_assistant/requirements.txt
 
 
 #此软件持续更新！
+更多请前往[zhanjhn studio](https://zhanjhh.github.io)
