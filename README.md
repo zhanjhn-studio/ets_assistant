@@ -42,7 +42,7 @@ pip install -r ets_assistant/requirements.txt
 (详见项目源码)
 其中 WebUI 需要 `pywebview`（会自动选用系统 Edge/Chromium 内核）。
 
-## DLL 一键编译（！高威）
+## DLL 一键编译（敏感！）
 见 `ets_assistant/advanced/README.md`。需要：
 - Visual Studio 2022（含 MSVC + CMake）
 - [Microsoft Detours](https://github.com/microsoft/Detours)，并设置 `DETOURS_ROOT` 环境变量
