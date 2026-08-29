@@ -1,0 +1,20 @@
+; real_winmm_minimal.def
+; 导出转发定义：把本 DLL 的导出全部转发到系统真实 winmm.dll
+; 语法： 导出名 = 真实DLL.原函数
+; 注意：以下是常见子集示例，完整列表请用以下命令从系统 winmm.dll 提取后补全：
+;   dumpbin /exports C:\Windows\System32\winmm.dll
+; 然后每条改写为：  FuncName = winmm.FuncName  （或 EXPORTS 段里 XXX=System32\winmm.XXX）
+; 本 .def 与 winmm_hook.cpp 中的 #pragma comment(/EXPORT) 二选一即可，建议用 pragma。
+
+LIBRARY winmm
+EXPORTS
+    waveOutOpen        = C:\Windows\System32\winmm.dll.waveOutOpen
+    waveOutClose       = C:\Windows\System32\winmm.dll.waveOutClose
+    waveOutPrepareHeader = C:\Windows\System32\winmm.dll.waveOutPrepareHeader
+    waveOutWrite       = C:\Windows\System32\winmm.dll.waveOutWrite
+    waveOutUnprepareHeader = C:\Windows\System32\winmm.dll.waveOutUnprepareHeader
+    waveInOpen         = C:\Windows\System32\winmm.dll.waveInOpen
+    timeGetTime        = C:\Windows\System32\winmm.dll.timeGetTime
+    timeSetEvent       = C:\Windows\System32\winmm.dll.timeSetEvent
+    timeKillEvent      = C:\Windows\System32\winmm.dll.timeKillEvent
+    PlaySoundW         = C:\Windows\System32\winmm.dll.PlaySoundW

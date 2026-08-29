@@ -1,0 +1,10 @@
+PyQt5>=5.15
+pywebview>=5.0
+pycaw>=20221116
+comtypes>=1.1.14
+opencv-python>=4.5
+pyautogui>=0.9.53
+pyaudio>=0.2.11
+numpy>=1.21
+python-docx>=0.8.11
+Pillow>=8.0

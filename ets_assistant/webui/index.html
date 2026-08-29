@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>E听说自动化辅助工具</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap");
+  /* ===== 黑白毛玻璃主题（深/浅双色） ===== */
+  :root, [data-theme="dark"]{
+    --bg0:#0a0a0a; --bg1:#101012; --bg2:#161618;
+    --card:rgba(255,255,255,.05); --card-b:rgba(255,255,255,.12);
+    --txt:#f2f2f2; --sub:#9e9e9e; --accent:#ffffff; --accent2:#8f8f8f;
+    --grad:linear-gradient(135deg,#f2f2f2,#c9c9c9);
+    --btn-txt:#000000;
+    --badge-bg:rgba(255,255,255,.14);
+    --input-bg:rgba(255,255,255,.06);
+    --console-txt:#d6d6d6;
+    --spin:#ffffff;
+    --ok:#37d67a; --warn:#ffb454; --err:#ff5c7c;
+    --color-ink:#2a2f38; --color-cloud:#ffffff;
+  }
+  [data-theme="light"]{
+    --bg0:#f4f4f4; --bg1:#eeeeee; --bg2:#e6e6e6;
+    --card:rgba(255,255,255,.62); --card-b:rgba(0,0,0,.16);
+    --txt:#161616; --sub:#4a4a4a; --accent:#000000; --accent2:#777777;
+    --grad:linear-gradient(135deg,#2a2a2a,#4a4a4a);
+    --btn-txt:#ffffff;
+    --badge-bg:rgba(0,0,0,.1);
+    --input-bg:rgba(255,255,255,.55);
+    --console-txt:#333333;
+    --spin:#000000;
+    --ok:#1f9d57; --warn:#c77a1f; --err:#d63a5a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  /* 暗色背景：Uiverse (adamgiebl) 灰黑网格 */
+  body{
+    font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    color:var(--txt); overflow:hidden;
+    --color:rgba(114,114,114,0.3);
+    background-color:#191a1a;
+    background-image:
+      linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent);
+    background-size:55px 55px;
+  }
+  /* 亮色背景：Uiverse (kencode7) 渐变 + 竖线网格 */
+  [data-theme="light"] body{
+    position:relative;
+    background:
+      linear-gradient(to bottom, #ffffff 0%, #f4fbff 45%, rgba(255,255,255,0) 100%),
+      linear-gradient(to right, #c7ecfb, #e6d9fb);
+  }
+  [data-theme="light"] .disc{color:#8a1226;background:rgba(255,92,124,.14);border-color:rgba(255,92,124,.5)}
+  [data-theme="light"] body::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:linear-gradient(90deg, #ccc 1px, transparent 1px);
+    background-size:50px 100%;
+    pointer-events:none; z-index:-1;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+  }
+  /* ---------- 布局：顶部导航 + 主区 ---------- */
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+  /* 顶部导航栏 —— 毛玻璃 */
+  .topnav{
+    display:flex;align-items:center;gap:18px;padding:12px 22px;
+    background:var(--card);border-bottom:1px solid var(--card-b);
+    backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+
+  .brand h1{font-size:16px;line-height:1.2}
+  .brand small{color:var(--sub);font-size:11px}
+
+  /* 顶部胶囊标签（Uiverse cir-tabs 适配黑白主题） */
+  .cir-tabs{
+    display:inline-flex;align-items:center;gap:4px;padding:6px;margin:0 auto;
+    background:var(--card);border:1px solid var(--card-b);border-radius:999px;
+    box-shadow:0 1px 1px rgba(0,0,0,.04),0 20px 40px -24px rgba(0,0,0,.18);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;
+  }
+  .cir-tabs__r{position:absolute;opacity:0;pointer-events:none;}
+  .cir-tabs__t{
+    display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 18px;
+    border-radius:999px;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;
+    white-space:nowrap;transition:background-color .22s cubic-bezier(.22,1,.36,1),color .22s cubic-bezier(.22,1,.36,1),box-shadow .22s cubic-bezier(.22,1,.36,1);
+  }
+  .cir-tabs__t:hover{color:var(--txt);}
+  .cir-tabs__r:checked + .cir-tabs__t{
+    background:var(--accent);color:var(--btn-txt);
+    box-shadow:0 1px 1px rgba(0,0,0,.06),0 8px 18px -10px rgba(0,0,0,.5);
+  }
+  .cir-tabs__r:focus-visible + .cir-tabs__t{box-shadow:0 0 0 3px rgba(128,128,128,.32);}
+  .topnav .switch{margin-left:auto}
+  /* 主区 */
+  .main{padding:26px 30px;overflow-y:auto}
+  .foot{margin-top:24px;font-size:11px;color:var(--sub);line-height:1.6;
+    border-top:1px solid var(--card-b);padding-top:14px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:14px}
+  .topbar h2{font-size:22px}
+  .topbar .crumb{color:var(--sub);font-size:13px}
+  .view{display:none;animation:fade .35s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* 卡片 —— 毛玻璃 */
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .card{background:var(--card);border:1px solid var(--card-b);border-radius:16px;
+    padding:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .card h3{font-size:14px;color:var(--sub);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .card .big{font-size:15px;font-weight:600;line-height:1.5}
+
+  .stat{display:flex;align-items:center;gap:12px}
+  .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 12px currentColor}
+  .dot.ok{background:var(--ok);color:var(--ok)}
+  .dot.warn{background:var(--warn);color:var(--warn)}
+  .dot.err{background:var(--err);color:var(--err)}
+  .dot.wait{background:#7a7a7a;color:#7a7a7a;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+  .btn{border:none;border-radius:11px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;
+    color:var(--btn-txt);background:var(--grad);transition:.18s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+  .btn:hover{transform:translateY(-1px);opacity:.92}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .btn.ghost{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+  .btn.ghost:hover{background:var(--card)}
+  .btn.danger{background:linear-gradient(135deg,#444,#222);color:#fff;border:1px solid var(--card-b)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+  /* GitHub 胶囊按钮（Uiverse cir-btn by uiverse-astronaut） */
+  .cir-btn{
+    --ink: var(--color-ink, #0e1116);
+    --cloud: var(--color-cloud, #ffffff);
+    display:inline-flex;align-items:center;gap:10px;
+    height:48px;padding:0 24px;border:0;border-radius:999px;
+    background:var(--ink);color:var(--cloud);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;
+    font-size:15px;font-weight:500;letter-spacing:-.005em;line-height:1;cursor:pointer;
+    box-shadow:0 1px 1px rgba(14,17,22,.06),0 14px 28px -18px rgba(14,17,22,.4);
+    transition:transform 140ms cubic-bezier(.22,1,.36,1),background-color 220ms cubic-bezier(.22,1,.36,1),box-shadow 220ms cubic-bezier(.22,1,.36,1);
+  }
+  .cir-btn__arrow{width:16px;height:16px;transition:transform 220ms cubic-bezier(.22,1,.36,1);}
+  .cir-btn:hover{background:#1a1f28;box-shadow:0 1px 1px rgba(14,17,22,.08),0 20px 36px -16px rgba(14,17,22,.48);}
+  .cir-btn:hover .cir-btn__arrow{transform:translate(2px,-2px);}
+  .cir-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(46,125,239,.32),0 14px 28px -18px rgba(14,17,22,.4);}
+  .cir-btn:active{transform:translateY(1px);}
+  .topnav .cir-btn{margin-left:12px;text-decoration:none}
+
+  .hero{border-radius:18px;padding:24px;background:var(--card);border:1px solid var(--card-b);
+    position:relative;overflow:hidden;margin-bottom:20px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .hero h2{font-size:24px;margin-bottom:8px}
+  .hero p{opacity:.92;font-size:13px;max-width:640px}
+  .hero .badge{display:inline-block;margin-top:14px;background:var(--badge-bg);padding:6px 12px;border-radius:20px;font-size:12px}
+
+  input,select,textarea{background:var(--input-bg);border:1px solid var(--card-b);color:var(--txt);
+    border-radius:10px;padding:10px 12px;font-size:13px;outline:none;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  textarea{font-family:Consolas,monospace;resize:vertical;min-height:120px}
+
+  .console{background:var(--input-bg);border:1px solid var(--card-b);border-radius:12px;
+    padding:14px;font-family:Consolas,monospace;font-size:12px;color:var(--console-txt);height:280px;overflow-y:auto;line-height:1.6}
+  .console .t{color:var(--sub)}
+  .pill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--card);color:var(--sub)}
+  .pill.ok{background:rgba(55,214,122,.18);color:var(--ok)}
+  .pill.err{background:rgba(255,92,124,.18);color:var(--err)}
+  .pill.warn{background:rgba(255,180,84,.18);color:var(--warn)}
+
+  .list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+  .item{padding:11px 14px;background:var(--card);border:1px solid var(--card-b);border-radius:10px;
+    cursor:pointer;transition:.15s;font-size:13px}
+  .item:hover{background:var(--card-b)}
+  .item.sel{background:var(--card-b);border-color:var(--accent)}
+  .note{font-size:12px;color:var(--sub);line-height:1.7}
+  .disc{background:rgba(255,92,124,.1);border:1px solid rgba(255,92,124,.4);border-radius:12px;
+    padding:14px;color:#ffd6dd;font-size:12px;line-height:1.7}
+  .progress{height:8px;border-radius:6px;background:var(--card-b);overflow:hidden;margin-top:6px}
+  .progress>i{display:block;height:100%;width:0;background:var(--grad);transition:width .4s;box-shadow:0 0 12px var(--accent)}
+  .spinner-sm{width:16px;height:16px;border:2px solid var(--card-b);border-top-color:var(--spin);border-radius:50%;
+    display:inline-block;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--card-b);border-radius:6px}
+
+  /* ===== 启动加载层（3D 立方体 spinner） ===== */
+  .loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+    background:var(--bg0);transition:opacity .45s ease, visibility .45s ease;}
+  .loader.hidden{opacity:0;visibility:hidden;}
+  .loader-text{color:var(--sub);font-size:14px;letter-spacing:3px;}
+  .spinner{width:44px;height:44px;animation:spinner-y0fdc1 2s infinite ease;transform-style:preserve-3d;}
+  .spinner > div{background-color:rgba(128,128,128,.18);height:100%;position:absolute;width:100%;border:2px solid var(--spin);}
+  .spinner div:nth-of-type(1){transform:translateZ(-22px) rotateY(180deg);}
+  .spinner div:nth-of-type(2){transform:rotateY(-270deg) translateX(50%);transform-origin:top right;}
+  .spinner div:nth-of-type(3){transform:rotateY(270deg) translateX(-50%);transform-origin:center left;}
+  .spinner div:nth-of-type(4){transform:rotateX(90deg) translateY(-50%);transform-origin:top center;}
+  .spinner div:nth-of-type(5){transform:rotateX(-90deg) translateY(50%);transform-origin:bottom center;}
+  .spinner div:nth-of-type(6){transform:translateZ(22px);}
+  @keyframes spinner-y0fdc1{
+    0%{transform:rotate(45deg) rotateX(-25deg) rotateY(25deg);}
+    50%{transform:rotate(45deg) rotateX(-385deg) rotateY(25deg);}
+    100%{transform:rotate(45deg) rotateX(-385deg) rotateY(385deg);}
+  }
+
+  /* ===== 深浅色切换开关 (Minecraft switch by csozidev / csozi) ===== */
+  .switch{font-size:17px;position:relative;display:inline-block;width:4em;height:2em;flex:0 0 auto;}
+  .switch input{opacity:1;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;}
+  .off{position:absolute;content:"";height:2em;width:2em;background-color:white;transition:.4s;image-rendering:pixelated;opacity:1;}
+  .on{position:absolute;content:"";height:2em;width:2em;background-color:white;transition:.4s;image-rendering:pixelated;opacity:0;}
+  .switch input:checked + .slider{background-color:#ccc;}
+  .switch input:focus + .slider{box-shadow:0 0 1px #ccc;}
+  .switch input:checked ~ .off{transform:translateX(2em);}
+  .switch input:checked ~ .on{transform:translateX(2em);opacity:1;}
+
+  /* ===== 试卷文件夹卡片 (Uiverse by Cobp, 适配黑白主题) ===== */
+  .exam-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:28px 18px;
+    padding:10px 2px;justify-items:center}
+  .exam-card{appearance:none;border:none;background:transparent;cursor:pointer;padding:0;
+    display:flex;flex-direction:column;align-items:center;font-family:inherit;color:var(--txt)}
+  .exam-card:focus{outline:none}
+  .exam-card:focus-visible .exam-file{box-shadow:0 0 0 3px rgba(217,119,6,.55);border-radius:16px}
+  .exam-file{position:relative;width:180px;height:128px;perspective:1500px;transition:filter .3s ease}
+  .exam-card:hover .exam-file{filter:drop-shadow(0 18px 22px rgba(0,0,0,.28))}
+  .exam-file [class^="exam-work"]{position:absolute;border-radius:16px}
+  .exam-work-5{inset:0;background:#d97706;border-top-left-radius:0;transform-origin:top center;transition:transform .3s ease}
+  .exam-work-5::after{content:"";position:absolute;bottom:99%;left:0;width:74px;height:16px;background:#d97706;border-radius:16px 16px 0 0}
+  .exam-work-5::before{content:"";position:absolute;top:-15px;left:70px;width:16px;height:16px;background:#d97706;clip-path:polygon(0 35%,0 100%,50% 100%)}
+  .exam-work-4,.exam-work-3,.exam-work-2{inset:1px;transform-origin:bottom center;transition:transform .3s ease}
+  .exam-work-4{background:#a1a1aa}
+  .exam-work-3{background:#d4d4d4}
+  .exam-work-2{background:#e9e9e9}
+  .exam-card:hover .exam-work-4{transform:rotateX(-20deg)}
+  .exam-card:hover .exam-work-3{transform:rotateX(-30deg)}
+  .exam-card:hover .exam-work-2{transform:rotateX(-38deg)}
+  .exam-work-1{position:absolute;bottom:0;left:0;width:100%;height:104px;
+    background:linear-gradient(to top,#f59e0b,#fbbf24);border-top-right-radius:0;
+    transform-origin:bottom center;transition:transform .3s ease,box-shadow .3s ease;
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px}
+  .exam-work-1::after{content:"";position:absolute;bottom:99%;right:0;width:130px;height:15px;background:#fbbf24;border-radius:16px 16px 0 0}
+  .exam-work-1::before{content:"";position:absolute;top:-10px;right:126px;width:12px;height:12px;background:#fbbf24;clip-path:polygon(100% 14%,50% 100%,100% 100%)}
+  .exam-card:hover .exam-work-1{transform:rotateX(-46deg) translateY(1px);
+    box-shadow:inset 0 20px 40px #fbbf24,inset 0 -20px 40px #d97706}
+  .exam-label{font-weight:800;font-size:17px;color:#7c2d12;letter-spacing:1px;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+  .exam-caption{margin-top:16px;text-align:center;max-width:200px}
+  .exam-caption .exam-title{font-weight:700;font-size:14px}
+  .exam-caption .exam-sub{font-size:11px;color:var(--sub);margin-top:3px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .exam-tab.selt{box-shadow:inset 0 0 0 2px var(--accent)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶部导航：品牌 + 胶囊标签 + 深浅切换 -->
+  <header class="topnav">
+    <div class="brand">
+
+      <div><h1>E听说助手</h1><small>zhanjhn-studio</small></div>
+    </div>
+    <div class="cir-tabs">
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-dashboard" checked>
+      <label class="cir-tabs__t" for="nav-dashboard">环境检测</label>
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-answers">
+      <label class="cir-tabs__t" for="nav-answers">答案查看</label>
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-audio">
+      <label class="cir-tabs__t" for="nav-audio">立体声混音</label>
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-dll">
+      <label class="cir-tabs__t" for="nav-dll">DLL 编译</label>
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-console">
+      <label class="cir-tabs__t" for="nav-console">运行日志</label>
+      <input class="cir-tabs__r" type="radio" name="nav" id="nav-auto">
+      <label class="cir-tabs__t" for="nav-auto">自动跟读</label>
+    </div>
+    <a class="cir-btn" href="https://github.com/zhanjhn-studio/ets_assistant/" target="_blank" rel="noopener" title="前往 GitHub 仓库">
+      GitHub
+      <svg class="cir-btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+    <label class="switch" title="切换深浅色">
+      <input type="checkbox" id="themeSwitch" checked>
+      <span class="slider"></span>
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAQABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAIG/8QAIxAAAgIABQQDAAAAAAAAAAAAAQMCBAAREiExBUFRcROBsf/EABQBAQAAAAAAAAAAAAAAAAAAAAX/xAAWEQADAAAAAAAAAAAAAAAAAAAAEiL/2gAMAwEAAhEDEQA/AMBTp03dNglMVuttjqnKQ2UPOfntkOThbqVVUJ12BKnogZQZpy+Ucc8knwePWJrWqyqEHVmrTahEBqpbBoAH1n635wt3a9mjN1p8X2pw0qVEbKB/CO/c4OphSVP/2Q==" class="off">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAQABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAQIEBf/EACMQAAEDAwQDAQEAAAAAAAAAAAQBAgUDESEAEjFBBlFhMkL/xAAUAQEAAAAAAAAAAAAAAAAAAAAF/8QAGBEAAwEBAAAAAAAAAAAAAAAAABIiMUH/2gAMAwEAAhEDEQA/AM+Bg4mS8coRccMOdNG01qVyH/kRvHPKKmMdr8uujPwUTG+NkRpw1AKWCbvHKa2zTGphc9u9p0q+rLqeMl4kSCGkYgtoE0HTahIz3bWGNanPrdyqWzn7p5ibh5CArnyZNMyVLpK0QSkt2BNXtVX+7ol1wuLJiyaHt+6Kyp//2Q==" class="on">
+    </label>
+  </header>
+
+  <!-- 主区 -->
+  <main class="main">
+    <div class="topbar">
+      <div><h2 id="viewTitle">运行环境检测</h2>
+        <div class="crumb" id="viewCrumb">启动前请确认各项为绿色</div></div>
+    </div>
+
+    <!-- 仪表盘 -->
+    <section class="view active" id="view-dashboard">
+      <div class="hero">
+        <h2>欢迎使用 E听说自动化辅助工具</h2>
+        <p>基于 PyWebView + WebEngine 渲染的现代前端界面，后端由 Python 提供环境与编译能力。请先在下方确认运行环境。</p>
+        <span class="badge" id="heroStatus">检测中…</span>
+      </div>
+      <div class="grid g3" id="envCards"></div>
+      <div class="card" style="margin-top:16px">
+        <h3>综合建议</h3>
+        <div class="big" id="envSummary">正在检测…</div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn ghost" id="openEtsBtn">打开 E听说</button>
+          <button class="btn ghost" id="refreshEnvBtn">重新检测</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 自动跟读 -->
+    <section class="view" id="view-auto">
+      <div class="card" style="margin-top:16px">
+        <h3>一键自动跟读</h3>
+        <p class="note">启动后自动操控 E听说 窗口完成跟读。请确保 E听说 已打开、按钮不被遮挡，并已启用「立体声混音」录制系统声音。</p>
+        <div class="row" style="margin-top:14px;align-items:center">
+          <button class="btn" id="startAutoBtn">▶ 开始自动跟读</button>
+          <button class="btn ghost" id="stopAutoBtn">■ 停止</button>
+          <span class="badge" id="autoStatus">未启动</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 答案查看 -->
+    <section class="view" id="view-answers">
+      <div class="card">
+        <h3>试卷搜索</h3>
+        <div class="row">
+          <input id="paperKw" placeholder="按试卷名搜索（留空显示全部）" style="flex:1" />
+          <button class="btn" id="searchBtn">搜索</button>
+        </div>
+      </div>
+
+      <!-- 总览：每套试卷的文件夹卡片 -->
+      <div id="paperCardsWrap" style="margin-top:18px">
+        <div class="exam-grid" id="paperCards"></div>
+      </div>
+
+      <!-- 详情：点进去后显示答案 + 试卷名称/创建日期 -->
+      <div id="paperDetail" style="display:none;margin-top:18px">
+        <button class="btn ghost" id="backPapersBtn">← 返回试卷列表</button>
+        <div class="row" id="paperSwitch" style="margin:14px 0 6px;gap:8px"></div>
+        <button class="btn ghost" id="speakAllBtn" style="margin-bottom:14px">🔊 朗读全部题目</button>
+        <div class="card">
+          <h3 id="detailTitle">试卷详情</h3>
+          <div id="paperInfoBox" style="font-size:13px;line-height:1.6"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 立体声混音 -->
+    <section class="view" id="view-audio">
+      <div class="card">
+        <h3>立体声混音（循环回放）</h3>
+        <p class="note">自动跟读需要录制系统播放的声音。启用「立体声混音」作为默认录音设备即可实现，退出后自动恢复原始设备。</p>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="enableMixBtn">启用立体声混音</button>
+          <button class="btn ghost" id="restoreMixBtn">恢复原设备</button>
+          <span class="pill" id="mixState">未操作</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DLL 编译 -->
+    <section class="view" id="view-dll">
+      <div class="disc">
+        ⚠️ 高级模块：winmm.dll 劫持（实验性 / 高风险）。基于 DLL 搜索顺序劫持 + Detours API Hook，参考
+        GitHub: Howie114514/ETSToolbox。仅供技术研究，严禁作弊。部署会写入 C:\Program Files (x86)\ETS\，可能触发杀软。
+        本程序不内置任何作弊数值，仅提供编译/部署框架。
+      </div>
+
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card">
+          <h3>编译环境</h3>
+          <div id="dllEnv" class="note">检测中…</div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn" id="dllBuildBtn">⚡ 一键编译 winmm.dll</button>
+            <span class="pill" id="dllBuildState">待编译</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>部署 / 卸载</h3>
+          <p class="note">编译成功后，可将 advanced/winmm.dll 部署到 E听说 目录。
+            部署会同时拷贝 winmm.dll（劫持）+ winmm_orig.dll（转发目标）。<br>
+            <b>需要管理员权限 + 风险确认。</b></p>
+          <div class="row" style="margin-top:12px">
+            <button class="btn" id="dllDeployBtn">一键部署到 ETS 目录</button>
+            <button class="btn danger" id="dllUninstallBtn">卸载</button>
+            <button class="btn ghost" id="openEtsDirBtn">打开 ETS 目录</button>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <span class="pill" id="deployState">未部署</span>
+          </div>
+          <div id="dllGuide" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日志 -->
+    <section class="view" id="view-console">
+      <div class="card">
+        <h3>运行日志（后端实时推送）</h3>
+        <div class="console" id="consoleBox"></div>
+      </div>
+    </section>
+    <footer class="foot">
+      ⚠️ 仅供个人技术研究 / 逆向教学。严禁考试作弊，使用者自负责任。
+    </footer>
+  </main>
+</div>
+
+<!-- 启动加载层 -->
+<div id="loader" class="loader">
+  <div class="spinner">
+    <div></div><div></div><div></div><div></div><div></div><div></div>
+  </div>
+  <div class="loader-text">加载中…</div>
+</div>
+
+<script>
+// ---------- 深浅色主题切换 ----------
+(function(){
+  const tgl = document.getElementById('themeSwitch');
+  function apply(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('ets_theme', t); } catch(e){}
+  }
+  let saved = 'dark';
+  try { saved = localStorage.getItem('ets_theme') || 'dark'; } catch(e){}
+  apply(saved);
+  if (tgl){
+    tgl.checked = (saved === 'dark');           // 选中 = 深色
+    tgl.addEventListener('change', () => apply(tgl.checked ? 'dark' : 'light'));
+  }
+})();
+
+let API = null;
+
+// ---------- 导航 ----------
+const titles = {
+  dashboard:["运行环境检测","启动前请确认各项为绿色"],
+  answers:["答案 / 试卷查看","读取 %Appdata%\\ETS 中的作业资源"],
+  audio:["立体声混音","自动跟读录音所需"],
+  dll:["DLL 一键编译","winmm.dll 劫持框架（高风险）"],
+  console:["运行日志","后端实时输出"],
+  auto:["自动跟读","一键启动 / 停止自动跟读"],
+};
+const navRadios=document.querySelectorAll('.cir-tabs__r');
+navRadios.forEach(r=>{
+  r.addEventListener('change',()=>{
+    if(!r.checked) return;
+    const v=r.id.replace('nav-','');
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    document.getElementById('viewTitle').textContent=titles[v][0];
+    document.getElementById('viewCrumb').textContent=titles[v][1];
+    if(v==='dll') loadDllStatus();
+    if(v==='answers') loadPapers();
+  });
+});
+
+// ---------- 日志轮询 ----------
+function pushLog(line){
+  const box=document.getElementById('consoleBox');
+  const d=document.createElement('div');
+  d.innerHTML='<span class="t">'+line.t+'</span> '+escapeHtml(line.msg);
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+// ---------- 语音朗读（Web Speech API） ----------
+function speakText(text,lang){
+  lang=lang||'zh-CN';
+  if(!('speechSynthesis' in window)){logLocal('当前环境不支持语音朗读（speechSynthesis）');return;}
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang;u.rate=0.95;
+    window.speechSynthesis.speak(u);
+  }catch(e){logLocal('朗读失败: '+e.message);}
+}
+function speakAll(list){
+  if(!('speechSynthesis' in window)){logLocal('当前环境不支持语音朗读（speechSynthesis）');return;}
+  const items=list.filter(Boolean);
+  if(!items.length){logLocal('没有可朗读的内容');return;}
+  try{
+    window.speechSynthesis.cancel();
+    let k=0;
+    const next=()=>{
+      if(k>=items.length) return;
+      const u=new SpeechSynthesisUtterance(items[k++]);
+      u.lang='zh-CN';u.rate=0.95;u.onend=next;
+      window.speechSynthesis.speak(u);
+    };
+    next();
+  }catch(e){logLocal('朗读失败: '+e.message);}
+}
+window.speakText=speakText;window.speakAll=speakAll;
+async function poll(){
+  if(API){const logs=await API.poll_logs(); logs.forEach(pushLog);}
+  setTimeout(poll,800);
+}
+function logLocal(m){pushLog({t:new Date().toLocaleTimeString(),msg:m});}
+
+// ---------- 环境检测 ----------
+const ENV_DEFS=[
+  ['admin','管理员权限'],['ets','E听说进程'],['stereo','立体声混音'],
+  ['deps','Python 依赖'],['screen','显示器'],['tpl','跟读模板'],
+];
+function envCard(key,label){
+  return `<div class="card"><div class="stat">
+    <span class="dot wait" id="dot-${key}"></span>
+    <div><div class="big">${label}</div><div class="note" id="val-${key}">检测中…</div></div>
+  </div></div>`;
+}
+async function loadEnv(){
+  document.getElementById('envCards').innerHTML=ENV_DEFS.map(([k,l])=>envCard(k,l)).join('');
+  const r=await API.env_check();
+  if(r.error){document.getElementById('envSummary').textContent='检测异常：'+r.error;return;}
+  const set=(k,ok,detail)=>{
+    const dot=document.getElementById('dot-'+k);
+    dot.className='dot '+(ok?'ok':'err');
+    document.getElementById('val-'+k).textContent=detail;
+  };
+  set('admin',r.admin,r.admin?'已获取管理员权限':'未以管理员运行');
+  set('ets',r.ets.ok,r.ets.detail);
+  set('stereo',r.stereo.ok,r.stereo.detail);
+  set('deps',r.deps.ok,r.deps.detail);
+  set('screen',r.screen.ok,r.screen.detail);
+  set('tpl',!!r.tpl?.ok,r.tpl?.detail||'模板状态');
+  const bad=[!r.admin&&'管理员',!r.ets.ok&&'E听说',!r.stereo.ok&&'立体声混音',!r.deps.ok&&'依赖'].filter(Boolean);
+  const hs=document.getElementById('heroStatus');
+  if(bad.length){hs.textContent='需处理: '+bad.join(' / ');hs.style.background='rgba(255,92,124,.3)';
+    document.getElementById('envSummary').textContent='⚠️ 请先处理：'+bad.join('、');}
+  else{hs.textContent='环境全部就绪 ✅';hs.style.background='rgba(55,214,122,.3)';
+    document.getElementById('envSummary').textContent='✅ 环境就绪，可开始自动跟读。';}
+}
+document.getElementById('refreshEnvBtn').onclick=loadEnv;
+document.getElementById('openEtsBtn').onclick=async()=>{const r=await API.open_ets();logLocal('打开E听说: '+(r.ok?'成功':'失败 '+r.error));loadEnv();};
+document.getElementById('startAutoBtn').onclick=async()=>{
+  const r=await API.start_automation();
+  const s=document.getElementById('autoStatus');
+  s.textContent=r.ok?'运行中…':'启动失败';
+  s.style.background=r.ok?'rgba(55,214,122,.3)':'rgba(255,92,124,.3)';
+  logLocal('自动跟读: '+(r.ok?'已启动':('失败 '+r.error)));
+};
+document.getElementById('stopAutoBtn').onclick=async()=>{
+  const r=await API.stop_automation();
+  const s=document.getElementById('autoStatus');
+  s.textContent=r.ok?'已停止':'未运行';
+  s.style.background=r.ok?'rgba(128,128,128,.25)':'rgba(255,92,124,.3)';
+  logLocal('停止自动跟读: '+(r.ok?'已发送停止信号':r.error));
+};
+
+// ---------- 答案：文件夹卡片网格 -> 详情 ----------
+let _papers = [];
+async function loadPapers(){
+  const kw=document.getElementById('paperKw').value;
+  const r=await API.list_papers(kw);
+  document.getElementById('paperDetail').style.display='none';
+  const wrap=document.getElementById('paperCardsWrap');
+  wrap.style.display='block';
+  const grid=document.getElementById('paperCards');
+  if(!r.ok){grid.innerHTML='<div class="note">读取失败: '+escapeHtml(r.error)+'</div>';return;}
+  _papers=r.papers;
+  if(!_papers.length){grid.innerHTML='<div class="note">未找到试卷。请先在 E听说 客户端中下载/打开过相关作业（数据位于 %Appdata%\\ETS）。</div>';return;}
+  grid.innerHTML=_papers.map((p,idx)=>{
+    const label='试卷'+(idx+1);
+    return `<button class="exam-card" data-name="${escapeHtml(p.name)}">
+      <div class="exam-file">
+        <div class="exam-work-5"></div>
+        <div class="exam-work-4"></div>
+        <div class="exam-work-3"></div>
+        <div class="exam-work-2"></div>
+        <div class="exam-work-1"><span class="exam-label">${label}</span></div>
+      </div>
+      <div class="exam-caption">
+        <div class="exam-title">${label}</div>
+        <div class="exam-sub" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+      </div>
+    </button>`;
+  }).join('');
+  grid.querySelectorAll('.exam-card').forEach(c=>c.onclick=()=>showPaperDetail(c.dataset.name));
+}
+
+async function showPaperDetail(name){
+  const r=await API.paper_info(name);
+  if(!r.ok){logLocal('详情失败: '+r.error);return;}
+  const i=r.info;
+  document.getElementById('paperCardsWrap').style.display='none';
+  const detail=document.getElementById('paperDetail');
+  detail.style.display='block';
+  document.getElementById('detailTitle').textContent='试卷详情 · '+name;
+
+  // 试卷一/二... 切换标签（点进去下方显示，便于快速切换）
+  const sw=document.getElementById('paperSwitch');
+  sw.innerHTML=_papers.map((p,idx)=>`<button class="btn ghost exam-tab ${p.name===name?'selt':''}" data-name="${escapeHtml(p.name)}">试卷${idx+1}</button>`).join('');
+  sw.querySelectorAll('.exam-tab').forEach(b=>b.onclick=()=>showPaperDetail(b.dataset.name));
+
+  // 朗读全部题目
+  document.getElementById('speakAllBtn').onclick=()=>{
+    const parts=i.questions.map(q=>q.content||q.answer).filter(Boolean);
+    speakAll(parts);
+  };
+
+  let html='';
+  // 试卷名称 + 创建日期
+  html+=`<div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:700">${escapeHtml(i.paper_title||name)}</div>
+    <div class="note" style="margin-top:4px">试卷目录：${escapeHtml(name)}　|　创建日期：${escapeHtml(i.created||'未知')}　|　修改：${escapeHtml(i.modified||'未知')}</div>
+  </div>`;
+  html+=`<div style="margin-bottom:10px"><span class="pill">文件 ${i.files.length}</span> <span class="pill">音频 ${i.audios.length}</span> <span class="pill">图片 ${i.images.length}</span></div>`;
+  if(i.exam_types && i.exam_types.length) html+=`<div class="note" style="margin-bottom:10px">题型：${i.exam_types.map(escapeHtml).join('、')}</div>`;
+  if(i.text_hints && i.text_hints.length) html+=`<div class="note" style="margin-bottom:10px;color:var(--warn)">${i.text_hints.map(escapeHtml).join('<br>')}</div>`;
+  if(!i.questions.length){
+    html+='<div class="note">本试卷暂无可解析的答案（可能尚未在客户端打开下载）。</div>';
+  } else {
+    html+=i.questions.map((q,idx)=>{
+      const speakTxt=q.content||q.answer||'';
+      let block=`<div class="item" style="cursor:default"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-weight:700;color:var(--accent)">#${escapeHtml(String(q.no||idx+1))} ${escapeHtml(q.type||'未知')}</div>`;
+      if(speakTxt) block+=`<button class="btn ghost" style="padding:5px 12px;font-size:12px" onclick="speakText(decodeURIComponent(this.dataset.speak))" data-speak="${encodeURIComponent(speakTxt)}">🔊 朗读</button>`;
+      block+=`</div>`;
+      if(q.content) block+=`<div style="margin-top:6px">原文：${escapeHtml(q.content)}</div>`;
+      if(q.answer && q.answer!==q.content) block+=`<div style="margin-top:6px;color:var(--ok)">AI/答案：${escapeHtml(q.answer)}</div>`;
+      if(q.options && q.options.length) block+=`<div style="margin-top:4px">选项：${q.options.map(o=>escapeHtml(o)).join(' / ')}</div>`;
+      if(q.audio) block+=`<div style="margin-top:6px"><audio controls src="file:///${i.path.replace(/\\/g,'/')}/${q.audio.replace(/\\/g,'/')}" style="width:100%;height:28px"></audio></div>`;
+      if(q.image) block+=`<div style="margin-top:6px"><img src="file:///${i.path.replace(/\\/g,'/')}/${q.image.replace(/\\/g,'/')}" style="max-width:100%;border-radius:8px" /></div>`;
+      block+=`</div>`;
+      return block;
+    }).join('');
+  }
+  document.getElementById('paperInfoBox').innerHTML=html;
+  detail.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('searchBtn').onclick=loadPapers;
+document.getElementById('paperKw').addEventListener('keydown',e=>{if(e.key==='Enter')loadPapers();});
+document.getElementById('backPapersBtn').onclick=()=>{
+  document.getElementById('paperDetail').style.display='none';
+  document.getElementById('paperCardsWrap').style.display='block';
+};
+
+// ---------- 立体声混音 ----------
+document.getElementById('enableMixBtn').onclick=async()=>{
+  const b=document.getElementById('enableMixBtn');
+  b.disabled=true;b.innerHTML='<span class="spinner-sm"></span>正在启用…';
+  const r=await API.enable_stereo_mix();
+  b.disabled=false;b.textContent='启用立体声混音';
+  setPill('mixState',r.ok?'ok':'err',r.ok?'已启用':'启用失败');
+  logLocal('立体声混音: '+(r.ok?'启用成功':('失败 · '+(r.detail||r.error||'未知错误'))));
+  loadEnv();
+};
+document.getElementById('restoreMixBtn').onclick=async()=>{
+  const b=document.getElementById('restoreMixBtn');
+  b.disabled=true;b.innerHTML='<span class="spinner-sm"></span>恢复中…';
+  const r=await API.restore_stereo_mix();
+  b.disabled=false;b.textContent='恢复原设备';
+  setPill('mixState',r.ok?'ok':'err',r.ok?'已恢复':'恢复失败');
+  logLocal('恢复设备: '+(r.ok?'成功':('失败 · '+(r.detail||r.error||'未知错误'))));
+  loadEnv();
+};
+function setPill(id,cls,txt){const e=document.getElementById(id);e.className='pill '+cls;e.textContent=txt;}
+
+// ---------- DLL ----------
+async function loadDllStatus(){
+  const r=await API.dll_build_status();
+  const mk=(ok)=>ok?'<span class="pill ok">已就绪</span>':'<span class="pill err">缺失</span>';
+  document.getElementById('dllEnv').innerHTML=
+    `MSVC/cl: ${mk(r.msvc||r.clang)}<br>CMake: ${mk(r.cmake)}<br>Detours: ${mk(r.detours)}<br>`+
+    `已编译产物: ${r.output_exists?'<span class="pill ok">存在</span>':'<span class="pill warn">无</span>'}<br>`+
+    `已部署: ${r.deployed?'<span class="pill ok">是</span>':'<span class="pill warn">否</span>'}`;
+  document.getElementById('dllBuildBtn').disabled=!(r.msvc||r.clang)||!r.cmake||!r.detours;
+  const dstate=document.getElementById('deployState');
+  if(r.deployed){dstate.className='pill ok';dstate.textContent='已部署到 ETS 目录';}
+  else if(r.output_exists){dstate.className='pill warn';dstate.textContent='已编译但未部署';}
+  else{dstate.className='pill err';dstate.textContent='未编译';}
+}
+document.getElementById('dllBuildBtn').onclick=async()=>{
+  const b=document.getElementById('dllBuildBtn');b.disabled=true;b.innerHTML='<span class="spinner-sm"></span>编译中';
+  setPill('dllBuildState','warn','编译中');
+  const r=await API.dll_build();
+  b.disabled=false;b.textContent='⚡ 一键编译 winmm.dll';
+  if(r.ok){setPill('dllBuildState','ok','成功');document.getElementById('dllGuide').innerHTML='<span class="pill ok">已生成 advanced/winmm.dll</span>';}
+  else if(r.need_setup){setPill('dllBuildState','err','需准备');document.getElementById('dllGuide').innerHTML='<div class="note">'+escapeHtml(r.guide).replace(/\n/g,'<br>')+'</div>';}
+  else{setPill('dllBuildState','err','失败');document.getElementById('dllGuide').innerHTML='<span class="pill err">'+escapeHtml(r.error||'')+'</span>';}
+  loadDllStatus();
+};
+document.getElementById('dllDeployBtn').onclick=async()=>{
+  const ok=confirm('⚠️ 高风险操作确认\n\n本操作将把 winmm.dll + winmm_orig.dll 写入 C:\\Program Files (x86)\\ETS\\。\n可能造成：杀软拦截、软件异常、违反软件协议、成绩/账号风险。\n仅供个人技术研究，严禁作弊。\n\n确定继续？');
+  if(!ok) return;
+  const b=document.getElementById('dllDeployBtn');b.disabled=true;b.innerHTML='<span class="spinner-sm"></span>部署中';
+  const r=await API.dll_deploy('__auto__');
+  b.disabled=false;b.textContent='一键部署到 ETS 目录';
+  logLocal('部署: '+(r.ok?'成功':'失败 '+r.error));
+  loadDllStatus();
+};
+document.getElementById('dllUninstallBtn').onclick=async()=>{
+  if(!confirm('确认卸载 ETS 目录下的 winmm.dll / winmm_orig.dll？')) return;
+  const r=await API.dll_uninstall();logLocal('卸载: '+(r.ok?'成功':'失败 '+r.error));loadDllStatus();
+};
+document.getElementById('openEtsDirBtn').onclick=async()=>{
+  await API.open_ets_dir();logLocal('已尝试打开 ETS 目录');
+};
+
+// ---------- 启动 / 加载层 ----------
+// 加载层：随机显示 4~10 秒（且至少等后端就绪 + 初始化完成）
+const loaderUntil = Date.now() + (4000 + Math.random() * 6000);
+let loaderCanHide = false;
+function tryHideLoader(){
+  if (!loaderCanHide) return;
+  const wait = loaderUntil - Date.now();
+  if (wait > 0){ setTimeout(tryHideLoader, wait); return; }
+  const l = document.getElementById('loader');
+  if (l) l.classList.add('hidden');
+}
+window.addEventListener('pywebviewready',async()=>{
+  API=window.pywebview.api;
+  logLocal('前端已连接后端 API');
+  poll();
+  try{ await loadEnv(); }catch(e){ logLocal('环境检测初始化失败: '+e); }
+  loaderCanHide = true;
+  tryHideLoader();
+});
+// 兜底：直接用浏览器打开调试、收不到 pywebviewready 时，也保证加载层最终隐藏
+// （仍先让最短随机时长基本耗尽，最多 11 秒）
+setTimeout(() => { loaderCanHide = true; tryHideLoader(); }, 11000);
+</script>
+</body>
+</html>

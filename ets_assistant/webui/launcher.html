@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>E听说助手 · 启动器</title>
+<style>
+  /* ===== 黑白毛玻璃主题（深/浅双色，与主程序一致） ===== */
+  :root, [data-theme="dark"]{
+    --bg0:#0a0a0a; --bg1:#101012; --bg2:#161618;
+    --card:rgba(255,255,255,.05); --card-b:rgba(255,255,255,.12);
+    --txt:#f2f2f2; --sub:#9e9e9e; --accent:#ffffff; --accent2:#8f8f8f;
+    --grad:linear-gradient(135deg,#f2f2f2,#c9c9c9);
+    --btn-txt:#000000;
+    --badge-bg:rgba(255,255,255,.14);
+    --input-bg:rgba(255,255,255,.06);
+    --console-txt:#d6d6d6;
+    --spin:#ffffff;
+    --ok:#37d67a; --warn:#ffb454; --err:#ff5c7c;
+    --color-ink:#2a2f38; --color-cloud:#ffffff;
+  }
+  [data-theme="light"]{
+    --bg0:#f4f4f4; --bg1:#eeeeee; --bg2:#e6e6e6;
+    --card:rgba(255,255,255,.62); --card-b:rgba(0,0,0,.16);
+    --txt:#161616; --sub:#4a4a4a; --accent:#000000; --accent2:#777777;
+    --grad:linear-gradient(135deg,#2a2a2a,#4a4a4a);
+    --btn-txt:#ffffff;
+    --badge-bg:rgba(0,0,0,.1);
+    --input-bg:rgba(255,255,255,.55);
+    --console-txt:#333333;
+    --spin:#000000;
+    --ok:#1f9d57; --warn:#c77a1f; --err:#d63a5a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  /* 暗色背景：灰黑网格 */
+  body{
+    font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    color:var(--txt); overflow:hidden;
+    --color:rgba(114,114,114,0.3);
+    background-color:#191a1a;
+    background-image:
+      linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent);
+    background-size:55px 55px;
+  }
+  /* 亮色背景 */
+  [data-theme="light"] body{
+    position:relative;
+    background:
+      linear-gradient(to bottom, #ffffff 0%, #f4fbff 45%, rgba(255,255,255,0) 100%),
+      linear-gradient(to right, #c7ecfb, #e6d9fb);
+  }
+  [data-theme="light"] body::before{
+    content:"";position:absolute;inset:0;
+    background-image:linear-gradient(90deg, #ccc 1px, transparent 1px);
+    background-size:50px 100%;pointer-events:none;z-index:-1;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+  }
+  /* ---------- 布局 ---------- */
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+  .topnav{
+    display:flex;align-items:center;gap:18px;padding:12px 22px;
+    background:var(--card);border-bottom:1px solid var(--card-b);
+    backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+
+  .brand h1{font-size:16px;line-height:1.2}
+  .brand small{color:var(--sub);font-size:11px}
+  .topnav .switch{margin-left:auto}
+  .main{padding:26px 30px;overflow-y:auto}
+  /* 卡片 —— 毛玻璃 */
+  .card{background:var(--card);border:1px solid var(--card-b);border-radius:16px;
+    padding:18px;margin-top:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .card h3{font-size:14px;color:var(--sub);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .hero{border-radius:18px;padding:24px;background:var(--card);border:1px solid var(--card-b);
+    position:relative;overflow:hidden;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .hero h2{font-size:24px;margin-bottom:8px}
+  .hero p{opacity:.92;font-size:13px;max-width:640px;line-height:1.6}
+  .hero .badge{display:inline-block;margin-top:14px;background:var(--badge-bg);padding:6px 12px;border-radius:20px;font-size:12px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .btn{border:none;border-radius:11px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;
+    color:var(--btn-txt);background:var(--grad);transition:.18s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+  .btn:hover{transform:translateY(-1px);opacity:.92}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .console{background:var(--input-bg);border:1px solid var(--card-b);border-radius:12px;
+    padding:14px;font-family:Consolas,monospace;font-size:12px;color:var(--console-txt);height:280px;overflow-y:auto;line-height:1.7}
+  .pill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--card);color:var(--sub)}
+  .pill.ok{background:rgba(55,214,122,.18);color:var(--ok)}
+  .pill.err{background:rgba(255,92,124,.18);color:var(--err)}
+  .pill.warn{background:rgba(255,180,84,.18);color:var(--warn)}
+  .pill.wait{background:rgba(128,128,128,.18);color:var(--sub)}
+  .disc{background:rgba(255,92,124,.1);border:1px solid rgba(255,92,124,.4);border-radius:12px;
+    padding:14px;color:#ffd6dd;font-size:12px;line-height:1.7}
+  .spinner-sm{width:16px;height:16px;border:2px solid var(--card-b);border-top-color:var(--spin);border-radius:50%;
+    display:inline-block;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--card-b);border-radius:6px}
+
+  /* ===== 启动加载层（3D 立方体 spinner，与主程序一致） ===== */
+  .loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+    background:var(--bg0);transition:opacity .45s ease, visibility .45s ease;}
+  .loader.hidden{opacity:0;visibility:hidden;}
+  .loader-text{color:var(--sub);font-size:14px;letter-spacing:3px;}
+  .spinner{width:44px;height:44px;animation:spinner-y0fdc1 2s infinite ease;transform-style:preserve-3d;}
+  .spinner > div{background-color:rgba(128,128,128,.18);height:100%;position:absolute;width:100%;border:2px solid var(--spin);}
+  .spinner div:nth-of-type(1){transform:translateZ(-22px) rotateY(180deg);}
+  .spinner div:nth-of-type(2){transform:rotateY(-270deg) translateX(50%);transform-origin:top right;}
+  .spinner div:nth-of-type(3){transform:rotateY(270deg) translateX(-50%);transform-origin:center left;}
+  .spinner div:nth-of-type(4){transform:rotateX(90deg) translateY(-50%);transform-origin:top center;}
+  .spinner div:nth-of-type(5){transform:rotateX(-90deg) translateY(50%);transform-origin:bottom center;}
+  .spinner div:nth-of-type(6){transform:translateZ(22px);}
+  @keyframes spinner-y0fdc1{
+    0%{transform:rotate(45deg) rotateX(-25deg) rotateY(25deg);}
+    50%{transform:rotate(45deg) rotateX(-385deg) rotateY(25deg);}
+    100%{transform:rotate(45deg) rotateX(-385deg) rotateY(385deg);}
+  }
+
+  /* ===== 深浅色切换开关 (Minecraft switch) ===== */
+  .switch{font-size:17px;position:relative;display:inline-block;width:4em;height:2em;flex:0 0 auto;}
+  .switch input{opacity:1;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;}
+  .off{position:absolute;content:"";height:2em;width:2em;background-color:white;transition:.4s;image-rendering:pixelated;opacity:1;}
+  .on{position:absolute;content:"";height:2em;width:2em;background-color:white;transition:.4s;image-rendering:pixelated;opacity:0;}
+  .switch input:checked + .slider{background-color:#ccc;}
+  .switch input:focus + .slider{box-shadow:0 0 1px #ccc;}
+  .switch input:checked ~ .off{transform:translateX(2em);}
+  .switch input:checked ~ .on{transform:translateX(2em);opacity:1;}
+
+  /* ===== 启动按钮（Uiverse emergency button by NguyenHaiNam24082000） ===== */
+  .background-button {
+    background: repeating-linear-gradient(45deg, #3c2209 0 20px, #ff9c00 20px 40px);
+    width: 10em; height: 10em;
+    -webkit-box-shadow: 15px 15px 50px 5px #5f5f5f; box-shadow: 15px 15px 50px 5px #5f5f5f;
+    position: relative; display: inline-block; outline: 2px solid black;
+  }
+  .background-button::before {
+    content: ""; display: inline-block; position: absolute; top: 15%; left: 15%;
+    width: 70%; height: 70%; background: #a0b8c4; border: 2px solid #3c2209;
+  }
+  .button {
+    background: #cc2a1f; width: 65%; height: 65%; border-radius: 50%;
+    position: absolute; top: 7.5%; left: 18.25%; color: white; font-size: 1em;
+    font-weight: 900; font-family: 'Courier New', Courier, monospace;
+    -webkit-box-shadow: 0 15px 0 0 #842a2a; box-shadow: 0 15px 0 0 #842a2a;
+    -webkit-transition: all .5s ease; transition: all .5s ease; border: 2px solid black; cursor: pointer;
+  }
+  .button:active {
+    -webkit-box-shadow: 0 1px 1px 1px #8C0606; box-shadow: 0 1px 1px 1px #8C0606; top: 15%;
+  }
+  .background-button:has(.button:active) + .emergency {
+    display: block; transform: rotate(0deg) scaleY(1);
+    animation: anims .25s cubic-bezier(0.075, 0.82, 0.165, 1);
+  }
+  @keyframes anims {
+    0% { transform: rotate(-30deg) scaleY(0.25); }
+    100% { transform: rotate(0deg) scaleY(1); }
+  }
+  .emergency { position: absolute; display: none; }
+
+  /* ===== 牛顿摆加载动画（运行中指示，Uiverse newtons-cradle by dovatgabriel） ===== */
+  .newtons-cradle {
+    --uib-size: 50px; --uib-speed: 1.2s; --uib-color: #474554;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: var(--uib-size); height: var(--uib-size); margin: 0 auto;
+  }
+  .newtons-cradle__dot {
+    position: relative; display: flex; align-items: center; height: 100%;
+    width: 25%; transform-origin: center top;
+  }
+  .newtons-cradle__dot::after {
+    content: ''; display: block; width: 100%; height: 25%; border-radius: 50%;
+    background-color: var(--uib-color);
+  }
+  .newtons-cradle__dot:first-child { animation: swing var(--uib-speed) linear infinite; }
+  .newtons-cradle__dot:last-child { animation: swing2 var(--uib-speed) linear infinite; }
+  @keyframes swing {
+    0% { transform: rotate(0deg); animation-timing-function: ease-out; }
+    25% { transform: rotate(70deg); animation-timing-function: ease-in; }
+    50% { transform: rotate(0deg); animation-timing-function: linear; }
+  }
+  @keyframes swing2 {
+    0% { transform: rotate(0deg); animation-timing-function: linear; }
+    50% { transform: rotate(0deg); animation-timing-function: ease-out; }
+    75% { transform: rotate(-70deg); animation-timing-function: ease-in; }
+  }
+
+  /* ===== 运行中视图：运行时仅显示加载条 + 停止按钮（其余全部隐藏） ===== */
+  .app.hidden{display:none}
+  .running-view{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+    background:var(--bg0);opacity:0;transition:opacity .35s ease}
+  .running-view.show{display:flex;opacity:1}
+
+  /* 运行态 3D 塔加载器（Uiverse by csozidev；.loader 改名 .tower-loader 避免与初始加载层 .loader 冲突） */
+  .tower-loader{scale:3;height:50px;width:40px;position:relative}
+  .tower-loader .box{position:relative;opacity:0;left:10px}
+  .tower-loader .side-left{position:absolute;background-color:#286cb5;width:19px;height:5px;transform:skew(0deg,-25deg);top:14px;left:10px}
+  .tower-loader .side-right{position:absolute;background-color:#2f85e0;width:19px;height:5px;transform:skew(0deg,25deg);top:14px;left:-9px}
+  .tower-loader .side-top{position:absolute;background-color:#5fa8f5;width:20px;height:20px;rotate:45deg;transform:skew(-20deg,-20deg)}
+  .tower-loader .box-1{animation:from-left 4s infinite}
+  .tower-loader .box-2{animation:from-right 4s infinite;animation-delay:1s}
+  .tower-loader .box-3{animation:from-left 4s infinite;animation-delay:2s}
+  .tower-loader .box-4{animation:from-right 4s infinite;animation-delay:3s}
+  @keyframes from-left{
+    0%{z-index:20;opacity:0;translate:-20px -6px}
+    20%{z-index:10;opacity:1;translate:0px 0px}
+    40%{z-index:9;translate:0px 4px}
+    60%{z-index:8;translate:0px 8px}
+    80%{z-index:7;opacity:1;translate:0px 12px}
+    100%{z-index:5;translate:0px 30px;opacity:0}
+  }
+  @keyframes from-right{
+    0%{z-index:20;opacity:0;translate:20px -6px}
+    20%{z-index:10;opacity:1;translate:0px 0px}
+    40%{z-index:9;translate:0px 4px}
+    60%{z-index:8;translate:0px 8px}
+    80%{z-index:7;opacity:1;translate:0px 12px}
+    100%{z-index:5;translate:0px 30px;opacity:0}
+  }
+
+  /* 停止按钮（Uiverse by cssbuttons-io，作用域限定到 #stopBtn 避免影响启动按钮） */
+  #stopBtn{width:150px;height:50px;cursor:pointer;display:flex;align-items:center;position:relative;
+    background:#e62222;border:none;border-radius:5px;box-shadow:1px 1px 3px rgba(0,0,0,.15)}
+  #stopBtn,#stopBtn span{transition:200ms}
+  #stopBtn .text{transform:translateX(35px);color:#fff;font-weight:bold}
+  #stopBtn .icon{position:absolute;border-left:1px solid #c41b1b;transform:translateX(110px);
+    height:40px;width:40px;display:flex;align-items:center;justify-content:center}
+  #stopBtn svg{width:15px;fill:#eee}
+  #stopBtn:hover{background:#ff3636}
+  #stopBtn:hover .text{color:transparent}
+  #stopBtn:hover .icon{width:150px;border-left:none;transform:translateX(0)}
+  #stopBtn:focus{outline:none}
+  #stopBtn:active .icon svg{transform:scale(.8)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶部导航：品牌 + 深浅切换 -->
+  <header class="topnav">
+    <div class="brand">
+
+      <div><h1>E听说助手</h1><small>启动器</small></div>
+    </div>
+    <label class="switch" title="切换深浅色">
+      <input type="checkbox" id="themeSwitch" checked>
+      <span class="slider"></span>
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAQABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAIG/8QAIxAAAgIABQQDAAAAAAAAAAAAAQMCBAAREiExBUFRcROBsf/EABQBAQAAAAAAAAAAAAAAAAAAAAX/xAAWEQADAAAAAAAAAAAAAAAAAAAAEiL/2gAMAwEAAhEDEQA/AMBTp03dNglMVuttjqnKQ2UPOfntkOThbqVVUJ12BKnogZQZpy+Ucc8knwePWJrWqyqEHVmrTahEBqpbBoAH1n635wt3a9mjN1p8X2pw0qVEbKB/CO/c4OphSVP/2Q==" class="off">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAQABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAQIEBf/EACMQAAEDAwQDAQEAAAAAAAAAAAQBAgUDESEAEjFBBlFhMkL/xAAUAQEAAAAAAAAAAAAAAAAAAAAF/8QAGBEAAwEBAAAAAAAAAAAAAAAAABIiMUH/2gAMAwEAAhEDEQA/AM+Bg4mS8coRccMOdNG01qVyH/kRvHPKKmMdr8uujPwUTG+NkRpw1AKWCbvHKa2zTGphc9u9p0q+rLqeMl4kSCGkYgtoE0HTahIz3bWGNanPrdyqWzn7p5ibh5CArnyZNMyVLpK0QSkt2BNXtVX+7ol1wuLJiyaHt+6Kyp//2Q==" class="on">
+    </label>
+  </header>
+
+  <!-- 主区 -->
+  <main class="main">
+    <div class="hero">
+      <h2>一键启动器</h2>
+      <p>图形化引导流程：检查依赖 → 启用立体声混音 → 启动主程序 → 退出后自动恢复原始设备。界面与主程序同源渲染，风格一致。</p>
+      <span class="badge">PyWebView · WebEngine 渲染</span>
+    </div>
+
+    <div class="card">
+      <h3>免责声明</h3>
+      <div class="disc">
+        ⚠️ 本工具仅供个人技术研究与逆向工程教学用途。严禁用于考试作弊或侵犯软件权益。
+        使用者须自行承担一切法律与纪律责任，作者不对任何使用后果负责。若不同意，请关闭本窗口并删除本项目。
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>运行日志</h3>
+      <div class="console" id="consoleBox"></div>
+      <div class="row" style="margin-top:14px;justify-content:center;gap:16px">
+        <div class="background-button">
+          <button class="button" id="launchBtn">启动</button>
+        </div>
+        <span class="pill wait" id="statePill">待启动</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 运行中视图：仅加载条 + 停止按钮 -->
+<div id="runningView" class="running-view">
+  <div class="tower-loader">
+    <div class="box box-1"><div class="side-left"></div><div class="side-right"></div><div class="side-top"></div></div>
+    <div class="box box-2"><div class="side-left"></div><div class="side-right"></div><div class="side-top"></div></div>
+    <div class="box box-3"><div class="side-left"></div><div class="side-right"></div><div class="side-top"></div></div>
+    <div class="box box-4"><div class="side-left"></div><div class="side-right"></div><div class="side-top"></div></div>
+  </div>
+  <button id="stopBtn">
+    <span class="text">停止</span>
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+    </span>
+  </button>
+</div>
+
+<!-- 启动加载层 -->
+<div id="loader" class="loader">
+  <div class="spinner">
+    <div></div><div></div><div></div><div></div><div></div><div></div>
+  </div>
+  <div class="loader-text">加载中…</div>
+</div>
+
+<script>
+// ---------- 深浅色主题切换（与主程序一致） ----------
+(function(){
+  const tgl = document.getElementById('themeSwitch');
+  function apply(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('ets_theme', t); } catch(e){}
+  }
+  let saved = 'dark';
+  try { saved = localStorage.getItem('ets_theme') || 'dark'; } catch(e){}
+  apply(saved);
+  if (tgl){
+    tgl.checked = (saved === 'dark');                       // 选中 = 深色
+    tgl.addEventListener('change', () => apply(tgl.checked ? 'dark' : 'light'));
+  }
+})();
+
+// ---------- 后端日志推回 ----------
+let API = null;
+const launchBtn = document.getElementById('launchBtn');
+const runStatus = document.getElementById('runStatus');
+const statePill = document.getElementById('statePill');
+window.__appendLog = function(msg){
+  const box = document.getElementById('consoleBox');
+  const d = document.createElement('div');
+  d.style.margin = '2px 0';
+  d.textContent = '• ' + msg;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+};
+window.__setState = function(cls, txt){
+  const e = document.getElementById('statePill');
+  e.className = 'pill ' + cls;
+  e.textContent = txt;
+};
+window.__setRunning = function(running){
+  const on = (running === true || running === 'true');
+  const appEl = document.querySelector('.app');
+  const rv = document.getElementById('runningView');
+  if (launchBtn) launchBtn.textContent = on ? '停止' : '启动';
+  if (appEl) appEl.classList.toggle('hidden', on);
+  if (rv) rv.classList.toggle('show', on);
+  if (statePill){
+    statePill.className = 'pill ' + (on ? 'ok' : 'wait');
+    statePill.textContent = on ? '运行中' : '待启动';
+  }
+};
+
+// ---------- 启动 / 加载层 ----------
+function hideLoader(){ const l = document.getElementById('loader'); if(l) l.classList.add('hidden'); }
+window.addEventListener('pywebviewready', async () => {
+  API = window.pywebview.api;
+  window.__appendLog('前端已连接后端 API，可以开始。');
+  hideLoader();
+});
+// 兜底：若 7 秒内未收到 pywebviewready（如直接用浏览器调试），也隐藏加载层
+setTimeout(hideLoader, 7000);
+
+const stopBtn = document.getElementById('stopBtn');
+let startTimer = null;          // 启动前的 3~5 秒随机等待计时器
+function doStop(){
+  // 仍在 3~5 秒等待期：直接取消启动并恢复界面
+  if (startTimer){
+    clearTimeout(startTimer);
+    startTimer = null;
+    const rv = document.getElementById('runningView');
+    const appEl = document.querySelector('.app');
+    if (rv) rv.classList.remove('show');
+    if (appEl) appEl.classList.remove('hidden');
+    window.__setState('wait', '已取消');
+    return;
+  }
+  if (!API) return;
+  API.stop().then(r => {
+    if (r && r.ok) window.__setState('wait', '停止中');
+    else window.__setState('warn', (r && r.error) || '停止失败');
+  }).catch(e => window.__appendLog('停止失败: ' + e));
+}
+if (stopBtn) stopBtn.onclick = doStop;
+
+launchBtn.onclick = async () => {
+  if (!API) return;
+  const isRunning = launchBtn.textContent.trim() === '停止';
+  if (!isRunning){
+    window.__setState('wait', '启动中');
+    // 立即显示运行视图（3D 塔），随机等待 3~5 秒后再真正启动主程序
+    const rv = document.getElementById('runningView');
+    const appEl = document.querySelector('.app');
+    if (appEl) appEl.classList.add('hidden');
+    if (rv) rv.classList.add('show');
+    const delay = 3000 + Math.random() * 2000;
+    startTimer = setTimeout(async () => {
+      startTimer = null;
+      try {
+        const r = await API.start();
+        if (!(r && r.ok)) window.__setState('err', '启动失败');
+      } catch(e){
+        window.__appendLog('调用失败: ' + e);
+        window.__setState('err', '失败');
+      }
+    }, delay);
+  } else {
+    doStop();
+  }
+};
+</script>
+</body>
+</html>
